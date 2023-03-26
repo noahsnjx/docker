@@ -1,0 +1,28 @@
+version: '3.4'
+
+services:
+  db:
+    image: postgres:13-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB is not set or empty}
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is not set or empty}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is not set or empty}
+    restart: always
+  php:
+    image: ${PHP_IMAGE:?PHP_IMAGE is not set or empty}:${APP_VERSION:?APP_VERSION is not set or empty}
+    environment:
+      APP_DEBUG: ${APP_DEBUG:-0}
+      APP_ENV: ${APP_ENV:-prod}
+      APP_SECRET: ${APP_SECRET:?APP_SECRET is not set or empty}
+      CORS_ALLOW_ORIGIN: ${CORS_ALLOW_ORIGIN:?CORS_ALLOW_ORIGIN is not set or empty}
+      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL is not set or empty}
+      TRUSTED_HOSTS: ${TRUSTED_HOSTS:?TRUSTED_HOSTS is not set or empty}
+      TRUSTED_PROXIES: ${TRUSTED_PROXIES:-10.0.0.0/8,172.16.0.0/12,192.168.0.0/16}
+    depends_on:
+      - db
+  api:
+    image: ${NGINX_IMAGE:?NGINX_IMAGE is not set or empty}:${APP_VERSION:?APP_VERSION is not set or empty}
+    depends_on:
+      - php
+    ports:
+      - "8083:80"
